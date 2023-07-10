@@ -42,6 +42,12 @@ export class ResturantsService {
 
   //   Get Resturant by id => GET  /resturant/:id
   async findById(id: string): Promise<Resturant> {
+    const isVlaidId = mongoose.isValidObjectId(id);
+
+    if (!isVlaidId) {
+      throw new NotFoundException('Resturant with this ID not Found');
+    }
+
     const resturant = await this.resturantModel.findById(id);
 
     if (!resturant) {
