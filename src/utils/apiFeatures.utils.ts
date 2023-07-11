@@ -3,6 +3,7 @@ import * as NodeGeocoder from 'node-geocoder';
 import {Location} from '../resturants/schemas/resturants.scheema'
 import { resolve } from 'path/posix';
 import { S3 } from 'aws-sdk';
+import { JwtService } from '@nestjs/jwt/dist';
 
 export default class APIFeatures {
   static async getResturantLocation(address: string) {
@@ -108,6 +109,13 @@ export default class APIFeatures {
       })
   }
 
+  static async assignJwtToken(userId: string, jwtService: JwtService): Promise<string>{
+
+    const payload = {id: userId}
+    const token = await jwtService.sign(payload)
+
+    return token
+  }
 
 
 }
