@@ -46,7 +46,7 @@ export class Resturant {
     category: Category
 
     @Prop()
-    images: object[]
+    images?: object[]
 
     @Prop({type: Object, ref: 'Location'})
     location?: Location

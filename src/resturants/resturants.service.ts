@@ -4,6 +4,7 @@ import { Resturant } from './schemas/resturants.scheema';
 import * as mongoose from 'mongoose';
 import { Query } from 'express-serve-static-core';
 import APIFeatures from '../utils/apiFeatures.utils';
+import { ignoreElements } from 'rxjs';
 
 @Injectable()
 export class ResturantsService {
@@ -14,7 +15,7 @@ export class ResturantsService {
 
   //   get All resturants => Get /resturants
   async findAll(query: Query): Promise<Resturant[]> {
-    const resPerPage = 1;
+    const resPerPage = 3;
     const currentPage = Number(query.page) || 1;
     const skip = resPerPage * (currentPage - 1);
     const keyword = query.keyword
@@ -81,5 +82,31 @@ export class ResturantsService {
   // Delete Resturant by id => Delete /resturant/:id
   async deleteById(id: string): Promise<Resturant> {
     return await this.resturantModel.findByIdAndDelete(id);
+  }
+
+  // upload images => PUT /resturants/upload/:id
+  async uploadImages(id, files) {
+    const images = await APIFeatures.upload(files);
+
+    const resturant = await this.resturantModel.findByIdAndUpdate(
+      id,
+      {
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        images: images as Object[],
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    return resturant;
+  }
+
+  // delete images => delete /resturants/:id
+  async deleteImages(images) {
+    if (images.length === 0) return true;
+    const res = await APIFeatures.deleteImages(images);
+    return res;
   }
 }
