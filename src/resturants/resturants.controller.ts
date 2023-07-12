@@ -7,14 +7,24 @@ import {
   Put,
   Delete,
   Query,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Query as ExpressQuery } from 'express-serve-static-core';
 import { CreateResturantDto } from './dto/create-resturant.dto';
 import { UpdateResturantDto } from './dto/update-resturant.dto';
 import { ResturantsService } from './resturants.service';
 import { Resturant } from './schemas/resturants.scheema';
-import { UseInterceptors, UploadedFiles } from '@nestjs/common/decorators';
+import {
+  UseInterceptors,
+  UploadedFiles,
+  UseGuards,
+} from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
+import { currentUser } from 'src/auth/decorators/current-user.decorator';
+import { User } from 'src/auth/schemas/user.schema';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorators';
 
 @Controller('resturants')
 export class ResturantsController {
@@ -26,11 +36,14 @@ export class ResturantsController {
   }
 
   @Post()
+  @UseGuards(AuthGuard(), RolesGuard)
+  @Roles('admin')
   async createResturant(
     @Body()
     resturant: CreateResturantDto,
+    @currentUser() user: User,
   ): Promise<Resturant> {
-    return this.resturantsService.create(resturant);
+    return this.resturantsService.create(resturant, user);
   }
 
   @Get(':id')
@@ -42,16 +55,25 @@ export class ResturantsController {
   }
 
   @Put(':id')
+  @UseGuards(AuthGuard())
   async updateResturant(
     @Param('id')
     id: string,
     @Body()
     resturant: UpdateResturantDto,
+    @currentUser() user: User,
   ): Promise<Resturant> {
+    const res = await this.resturantsService.findById(id);
+
+    if (res.user !== user.id) {
+      throw new ForbiddenException('You Update this resturant.');
+    }
+
     return this.resturantsService.updateById(id, resturant);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard())
   async deleteResturant(
     @Param('id')
     id: string,
@@ -76,6 +98,7 @@ export class ResturantsController {
   }
 
   @Put('upload/:id')
+  @UseGuards(AuthGuard())
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFiles(
     @Param('id') id: string,

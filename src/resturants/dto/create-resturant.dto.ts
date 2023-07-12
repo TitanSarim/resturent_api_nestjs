@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { IsNotEmpty, IsString, IsPhoneNumber, IsEmail, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsPhoneNumber, IsEmail, IsEnum, IsEmpty } from 'class-validator';
 import { Category } from '../schemas/resturants.scheema';
+import { User } from 'src/auth/schemas/user.schema';
 
 
 
@@ -31,5 +32,8 @@ export class CreateResturantDto {
   readonly category: Category;
 
   readonly images: object[]
+
+  @IsEmpty({message: 'You cannot provide the user ID'})
+  readonly user: User
 
 }
